@@ -1,0 +1,13 @@
+# Python caches
+__pycache__/
+*.py[cod]
+
+# YouTube-transcribe artifacts
+*.wav
+*.en.vtt
+
+# VS Code settings
+.vscode/
+
+# macOS
+.DS_Store
