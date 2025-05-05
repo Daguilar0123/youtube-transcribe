@@ -32,3 +32,12 @@ If you don't have Python installed already, follow one of these easy methods:
 
 ```bash
 pip install yt-dlp
+
+## Usage
+
+```bash
+git clone https://github.com/Daguilar0123/youtube-transcribe.git
+cd youtube-transcribe
+pip install yt-dlp
+python3 youtube_transcribe.py "<YouTube URL>" "My Project Name"
+```
