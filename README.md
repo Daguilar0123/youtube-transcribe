@@ -13,6 +13,19 @@ into `~/Downloads/<ProjectName>/`, then convert any `.en.vtt` subtitles into a h
 
 ## Requirements
 
+### Installing Python
+
+If you don't have Python installed already, follow one of these easy methods:
+
+- **Homebrew (macOS)**  
+  Open Terminal and run:
+  ```bash
+  brew install python3
+  ```
+- **Official Installer**  
+  Download and run the installer for your system from:
+  https://www.python.org/downloads/
+
 - Python 3.8+  
 - macOS (for `osascript` notifications)  
 - [yt-dlp](https://github.com/yt-dlp/yt-dlp)  
