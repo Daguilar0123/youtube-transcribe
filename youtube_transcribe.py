@@ -2,14 +2,14 @@ import sys, os, subprocess
 from pathlib import Path
 from yt_dlp import YoutubeDL
 import tkinter as tk
-from tkinter import messagebox
+from tkinter import messagebox, filedialog
 
 def sanitize(name: str) -> str:
     # allow letters, numbers, spaces, dots, underscores, hyphens
     return "".join(c if c.isalnum() or c in " ._-"
                    else "_" for c in name).strip()
 
-def download_video(url: str, folder: Path) -> None:
+def download_video(url: str, folder: Path, file_name: str = None) -> None:
     opts = {
         "format": "bestvideo[ext=mp4][vcodec^=avc1]+bestaudio[ext=m4a]/mp4",
         "merge_output_format": "mp4",
@@ -18,6 +18,9 @@ def download_video(url: str, folder: Path) -> None:
         "writeautomaticsub": True,
         "subtitleslangs": ["en"],
     }
+    if file_name:
+        safe_name = sanitize(file_name)
+        opts["outtmpl"] = str(folder / f"{safe_name}.%(ext)s")
     with YoutubeDL(opts) as ydl:
         ydl.download([url])
 
@@ -48,7 +51,7 @@ def process(url: str, raw_name: str):
     project.mkdir(parents=True, exist_ok=True)
 
     print(f"Downloading into: {project}")
-    download_video(url, project)
+    download_video(url, project, None)
     if vtt_to_txt(project):
         notify("YouTube Automation",
                f"Download & transcript saved in {project}")
@@ -65,30 +68,44 @@ def main():
     process(url, raw_name)
 
 
-# GUI entrypoint
 def gui_main():
     root = tk.Tk()
     root.title("YouTube Transcribe")
 
     tk.Label(root, text="YouTube URL:").grid(row=0, column=0, sticky="e", padx=5, pady=5)
     url_entry = tk.Entry(root, width=50)
-    url_entry.grid(row=0, column=1, padx=5, pady=5)
+    url_entry.grid(row=0, column=1, columnspan=2, padx=5, pady=5)
 
-    tk.Label(root, text="Project Folder Name:").grid(row=1, column=0, sticky="e", padx=5, pady=5)
-    folder_entry = tk.Entry(root, width=50)
+    tk.Label(root, text="Download Folder:").grid(row=1, column=0, sticky="e", padx=5, pady=5)
+    folder_entry = tk.Entry(root, width=40)
     folder_entry.grid(row=1, column=1, padx=5, pady=5)
+    browse_btn = tk.Button(root, text="Browse...", command=lambda: folder_entry.delete(0, tk.END) or folder_entry.insert(0, filedialog.askdirectory()))
+    browse_btn.grid(row=1, column=2, padx=5, pady=5)
+
 
     def on_download():
         url = url_entry.get().strip()
         if not url:
             messagebox.showerror("Error", "Please enter a YouTube URL.")
             return
-        raw_name = folder_entry.get().strip() or "YouTube Downloads"
+        dest = folder_entry.get().strip()
+        if not dest:
+            messagebox.showerror("Error", "Please select a download folder.")
+            return
         root.destroy()
-        process(url, raw_name)
+        project = Path(dest)
+        project.mkdir(parents=True, exist_ok=True)
+        print(f"Downloading into: {project}")
+        download_video(url, project)
+        if vtt_to_txt(project):
+            notify("YouTube Automation",
+                   f"Download & transcript saved in {project}")
+        else:
+            notify("YouTube Automation",
+                   f"Download complete but no subtitles in {project}")
 
     download_btn = tk.Button(root, text="Download & Transcribe", command=on_download)
-    download_btn.grid(row=2, column=0, columnspan=2, pady=10)
+    download_btn.grid(row=2, column=0, columnspan=3, pady=10)
 
     root.mainloop()
 
