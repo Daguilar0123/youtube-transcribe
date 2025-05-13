@@ -50,6 +50,4 @@ We’ve packaged a one-click Automator app with a custom icon:
 2. **Open** the `macos/` folder.
 3. **Drag** `YouTube Transcribe.app` into your `/Applications` folder.
 4. **(Optional)** Right-click its icon in the Dock → **Options → Keep in Dock**.
-5. On first launch, you may need to allow it in **System Preferences → Security & Privacy**.
-
-That’s it—now anyone can run the same app (with icon) you’re using!  
+5. On first launch, you may need to allow it in **System Preferences → Security & Privacy**. 
