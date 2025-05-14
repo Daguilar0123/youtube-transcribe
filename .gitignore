@@ -1,13 +1,16 @@
-# Python caches
+# Python virtualenv
+venv/
+
+# Flask download cache
+downloads/
+
+# Byte-compiled / cache
 __pycache__/
 *.py[cod]
 
-# YouTube-transcribe artifacts
-*.wav
-*.en.vtt
+# macOS cruft
+.DS_Store
 
-# VS Code settings
+# Editor folders
 .vscode/
 
-# macOS
-.DS_Store

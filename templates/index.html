@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>YouTube Transcribe Web</title>
+</head>
+<body>
+  <h1>YouTube Transcribe</h1>
+  {% for msg in get_flashed_messages() %}
+    <p style="color: red;">{{ msg }}</p>
+  {% endfor %}
+  <form method="post">
+    <input name="url" placeholder="Paste YouTube URL here" style="width:70%;" />
+    <button type="submit">Download & Transcribe</button>
+  </form>
+</body>
+</html>
