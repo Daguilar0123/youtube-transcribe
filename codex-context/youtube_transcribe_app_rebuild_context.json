@@ -1,13 +1,3 @@
-
-~/Downloads/whisper.cpp/build/bin/whisper-cli
-
-and model files like:
-
-~/Downloads/whisper.cpp/models/ggml-medium.bin
-~/whisper.cpp/models/ggml-large.bin
-
-Here’s the JSON-style context document:
-
 {
   "context_type": "youtube_transcribe_app_rebuild_context",
   "project_name": "YouTube Transcribe App",
