@@ -38,6 +38,39 @@ def vtt_to_txt(folder: Path) -> bool:
         txt.write_text("\n".join(lines), encoding="utf-8")
     return any_subs
 
+def transcribe_with_whisper(folder: Path) -> bool:
+    whisper_cli = Path.home() / "whisper.cpp/build/bin/whisper-cli"
+    model = Path.home() / "whisper.cpp/models/ggml-large.bin"
+
+    mp4_files = list(folder.glob("*.mp4"))
+    if not mp4_files:
+        print("No mp4 file found.")
+        return False
+
+    video = mp4_files[0]
+    wav = video.with_suffix(".wav")
+
+    subprocess.run([
+        "/usr/local/bin/ffmpeg",
+        "-y",
+        "-i", str(video),
+        "-vn",
+        "-acodec", "pcm_s16le",
+        "-ar", "16000",
+        "-ac", "1",
+        str(wav)
+    ], check=True)
+
+    subprocess.run([
+        str(whisper_cli),
+        "-m", str(model),
+        "-f", str(wav),
+        "-otxt",
+        "-osrt"
+    ], check=True)
+
+    return True
+
 def notify(title: str, message: str):
     subprocess.run([
         "osascript", "-e",
@@ -100,10 +133,13 @@ def gui_main():
         download_video(url, project)
         if vtt_to_txt(project):
             notify("YouTube Automation",
-                   f"Download & transcript saved in {project}")
+                   f"YouTube captions saved in {project}")
         else:
             notify("YouTube Automation",
-                   f"Download complete but no subtitles in {project}")
+                   "No YouTube captions found. Running Whisper...")
+            transcribe_with_whisper(project)
+            notify("YouTube Automation",
+                   f"Whisper transcript saved in {project}")
 
     download_btn = tk.Button(root, text="Download & Transcribe", command=on_download)
     download_btn.grid(row=2, column=0, columnspan=3, pady=10)
