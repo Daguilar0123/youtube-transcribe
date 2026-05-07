@@ -1,0 +1,249 @@
+
+~/Downloads/whisper.cpp/build/bin/whisper-cli
+
+and model files like:
+
+~/Downloads/whisper.cpp/models/ggml-medium.bin
+~/whisper.cpp/models/ggml-large.bin
+
+Here’s the JSON-style context document:
+
+{
+  "context_type": "youtube_transcribe_app_rebuild_context",
+  "project_name": "YouTube Transcribe App",
+  "user_goal": {
+    "primary_goal": "Create a new app from scratch that lets a user paste a YouTube URL, choose a download/output folder, download the video or audio, convert/extract audio if needed, and generate transcript files using local Whisper transcription.",
+    "secondary_goal": "Make the app easier to use than command line tools, with clear progress messages, visible errors, and downloadable transcript outputs.",
+    "long_term_goal": "Eventually package the app so non-technical users can install and use it without needing to understand Terminal.",
+    "preferred_platform": "macOS first",
+    "cross_platform_interest": "If practical, design the app architecture so it can also work on Windows PCs later."
+  },
+  "current_project_folder": {
+    "path": "/Users/danielaguilar/Documents/youtube-transcribe",
+    "known_files": [
+      "youtube_transcribe.py",
+      "app.py",
+      "passenger_wsgi.py",
+      "requirements.txt",
+      "README.md",
+      "templates/",
+      "assets/",
+      "macos/",
+      "youtube-transcribe.icns",
+      "Icon.iconset"
+    ]
+  },
+  "existing_mac_app": {
+    "installed_app_path": "/Applications/YouTube Transcribe.app",
+    "observed_behavior": "The app opens successfully, accepts a YouTube URL, and lets the user choose a download folder.",
+    "important_discovery": "The installed app appears to be an Automator wrapper around a Python script, not a fully standalone native app.",
+    "evidence": {
+      "bundle_executable": "Automator Application Stub",
+      "workflow_file": "/Applications/YouTube Transcribe.app/Contents/document.wflow",
+      "python_script_used": "/Users/danielaguilar/Documents/youtube-transcribe/youtube_transcribe.py",
+      "launch_command": "/usr/local/bin/python3 \"/Users/danielaguilar/Documents/youtube-transcribe/youtube_transcribe.py\""
+    }
+  },
+  "what_was_tried": [
+    {
+      "attempt": "Ran the installed app normally from Applications.",
+      "result": "The GUI opened, but clicking Download & Transcribe appeared to do little or nothing."
+    },
+    {
+      "attempt": "Ran the Python script directly from Terminal.",
+      "command": "/usr/local/bin/python3 \"/Users/danielaguilar/Documents/youtube-transcribe/youtube_transcribe.py\"",
+      "result": "The app opened and terminal output showed what was actually happening."
+    },
+    {
+      "attempt": "Tested YouTube download behavior.",
+      "result": "The app successfully downloaded an MP4 file."
+    },
+    {
+      "attempt": "Looked for transcript output after download.",
+      "result": "No transcript was created."
+    },
+    {
+      "attempt": "Inspected the script for whisper, ffmpeg, wav, txt, srt, and subprocess references.",
+      "result": "The script appeared to rely on YouTube subtitles/captions rather than actually running Whisper transcription."
+    },
+    {
+      "attempt": "Tried to patch the Python script to add Whisper fallback.",
+      "result": "Editing introduced Python indentation problems, including IndentationError, TabError, and SyntaxError."
+    },
+    {
+      "attempt": "Normalized tabs to spaces using expand.",
+      "command": "expand -t 4 youtube_transcribe.py > fixed.py && mv fixed.py youtube_transcribe.py",
+      "result": "This fixed tab inconsistency but did not fully repair the script logic."
+    },
+    {
+      "attempt": "Abandoned patching the old app temporarily and returned to manual transcription.",
+      "result": "Manual ffmpeg + whisper-cli commands are currently the reliable workflow."
+    }
+  ],
+  "core_problem_diagnosis": {
+    "main_issue": "The current app is named as if it transcribes, but it only downloads YouTube subtitles/captions when available. If YouTube has no captions, it downloads the video but does not run local Whisper.",
+    "observed_terminal_message": "[info] There are no subtitles for the requested languages",
+    "user_visible_symptom": "Only the MP4 appears in the selected output folder; no transcript file appears.",
+    "app_design_issue": "The GUI does not clearly show whether it is downloading captions, running Whisper, converting audio, or failing."
+  },
+  "known_working_manual_pipeline": {
+    "step_1_extract_audio_from_mp4": {
+      "tool": "ffmpeg",
+      "example_command": "ffmpeg -i \"Oogenesis, a Detailed Step-by-Step Guide.mp4\" -vn -acodec pcm_s16le -ar 16000 -ac 1 \"oogenesis.wav\""
+    },
+    "step_2_transcribe_with_whisper_cpp": {
+      "tool": "whisper.cpp",
+      "example_command": "/Users/danielaguilar/whisper.cpp/build/bin/whisper-cli -m /Users/danielaguilar/whisper.cpp/models/ggml-large.bin -f \"oogenesis.wav\" -otxt -osrt"
+    },
+    "expected_outputs": [
+      "oogenesis.wav.txt",
+      "oogenesis.wav.srt"
+    ]
+  },
+  "important_local_environment_details": {
+    "operating_system": "macOS on Apple Silicon Mac mini",
+    "terminal_shell": "zsh",
+    "python_path_used_by_old_app": "/usr/local/bin/python3",
+    "ffmpeg": "Installed and usable from Terminal",
+    "yt_dlp": "Installed and usable from Terminal",
+    "whisper_cpp": {
+      "description": "Local C/C++ Whisper implementation used frequently by the user for Biology lecture/lab transcription workflows.",
+      "known_executable_paths": [
+        "/Users/danielaguilar/whisper.cpp/build/bin/whisper-cli",
+        "/Users/danielaguilar/Downloads/whisper.cpp/build/bin/whisper-cli"
+      ],
+      "known_model_preference": "Use non-.en models because the user's working setup has ggml-large.bin or ggml-medium.bin, not ggml-large.en.bin or ggml-medium.en.bin.",
+      "important_warning": "Do not assume the .en model exists. Commands using ggml-large.en.bin or ggml-medium.en.bin have caused problems in the past."
+    }
+  },
+  "biology_simulation_transcription_context": {
+    "related_project": "General Biology I Spring 2026 simulation project",
+    "workflow": "The user frequently downloads, converts, enhances, and transcribes lecture/lab audio and video files using ffmpeg and whisper.cpp.",
+    "typical_transcription_command_pattern": "~/Downloads/whisper.cpp/build/bin/whisper-cli -m ~/Downloads/whisper.cpp/models/ggml-medium.bin -f input.wav -osrt -otxt --max-len 80 -of output_prefix --prompt \"biology-specific vocabulary/context\"",
+    "common_options": [
+      "-otxt",
+      "-osrt",
+      "--max-len 80",
+      "-of output_prefix",
+      "--prompt with course-specific terms"
+    ],
+    "importance_for_new_app": "The new app should support reusable domain prompts and transcript outputs useful for school projects, especially Biology lecture/lab materials."
+  },
+  "desired_new_app_features": {
+    "minimum_viable_app": [
+      "Paste YouTube URL",
+      "Choose output folder",
+      "Download video or audio using yt-dlp",
+      "Extract audio to WAV using ffmpeg",
+      "Run whisper.cpp locally",
+      "Generate TXT transcript",
+      "Generate SRT subtitles",
+      "Show clear progress states",
+      "Show errors in the GUI instead of failing silently",
+      "Open output folder after completion"
+    ],
+    "strongly_preferred_features": [
+      "Let user choose model file or auto-detect installed models",
+      "Default to non-.en model if that is what exists",
+      "Let user choose transcript format: txt, srt, vtt, json",
+      "Let user enter an optional Whisper prompt",
+      "Save recent output folder",
+      "Display command log or expandable debug panel",
+      "Allow retry from failed step",
+      "Check dependencies on startup",
+      "Warn if ffmpeg, yt-dlp, whisper-cli, or model file is missing",
+      "Avoid silent failures"
+    ],
+    "future_features": [
+      "Batch URLs",
+      "Drag-and-drop local MP4/M4A/WAV files",
+      "Transcript cleanup",
+      "Lecture notes generation",
+      "Speaker labels if supported by future tooling",
+      "Export to PDF or DOCX",
+      "Project folders per video",
+      "Presets for Biology lectures, YouTube essays, interviews, and school assignments"
+    ]
+  },
+  "recommended_rebuild_direction": {
+    "mac_first_best_options": [
+      {
+        "stack": "Swift or SwiftUI frontend + command-line backend tools",
+        "pros": [
+          "Best native macOS experience",
+          "Good for polished desktop app",
+          "Can call yt-dlp, ffmpeg, and whisper-cli as subprocesses"
+        ],
+        "cons": [
+          "Harder learning curve if user is newer to Swift"
+        ]
+      },
+      {
+        "stack": "Tauri frontend with TypeScript + Rust backend",
+        "pros": [
+          "Modern lightweight desktop app",
+          "Cross-platform potential for macOS and Windows",
+          "Good UI/UX flexibility",
+          "Much lighter than Electron"
+        ],
+        "cons": [
+          "Requires learning some Rust/project structure"
+        ]
+      },
+      {
+        "stack": "Electron with TypeScript",
+        "pros": [
+          "Very flexible UI",
+          "Cross-platform macOS/Windows/Linux",
+          "Huge ecosystem",
+          "Good if user wants web-like interface"
+        ],
+        "cons": [
+          "Heavier app size and memory usage"
+        ]
+      },
+      {
+        "stack": "Python + PySide6 or PyQt + PyInstaller",
+        "pros": [
+          "Closest to current code",
+          "Fastest path from existing script",
+          "Can package as .app"
+        ],
+        "cons": [
+          "Packaging dependencies can be annoying",
+          "Less ideal for polished cross-platform distribution"
+        ]
+      }
+    ],
+    "likely_best_choice_for_this_user": "Tauri with TypeScript frontend is a strong candidate if the goal is a polished app that can eventually support both Mac and Windows. SwiftUI is best if focusing only on macOS. Python is fastest for a prototype but may repeat packaging pain."
+  },
+  "what_codex_should_do_first": [
+    "Inspect the existing project folder.",
+    "Explain the current architecture in simple terms.",
+    "Identify which parts are reusable and which should be discarded.",
+    "Propose a clean rebuild architecture.",
+    "Recommend the best language/framework for macOS-first with possible Windows support.",
+    "Create a minimal working prototype that handles local MP4 to transcript first.",
+    "Then add YouTube download support.",
+    "Then add GUI polish and packaging."
+  ],
+  "specific_questions_for_codex": [
+    "Should this be rebuilt in SwiftUI, Tauri, Electron, or Python?",
+    "What is the cleanest architecture for calling yt-dlp, ffmpeg, and whisper.cpp?",
+    "How should the app detect dependency paths on macOS?",
+    "How should it handle Windows later?",
+    "Can the app bundle whisper.cpp and models, or should it ask the user to locate them?",
+    "What is the simplest MVP that proves the full pipeline works?",
+    "How can the app expose logs and progress clearly to avoid silent failures?"
+  ],
+  "non_negotiables": [
+    "Do not rely only on YouTube captions.",
+    "The app must run local Whisper transcription.",
+    "The app must show clear errors.",
+    "The app must use existing working model paths unless the user changes them.",
+    "Do not default to .en Whisper models unless that exact file exists.",
+    "Avoid silent failure after download.",
+    "Keep the workflow understandable for a non-command-line user."
+  ],
+  "summary_for_codex": "The current YouTube Transcribe app is a Python GUI launched through an Automator app wrapper. It can download a YouTube MP4, but it does not reliably transcribe because it appears to depend on YouTube subtitles rather than running local whisper.cpp. The user already has a working manual transcription pipeline using ffmpeg and whisper.cpp with non-.en GGML models. The desired outcome is a fresh, better-designed app, preferably macOS-first but with possible Windows support, that downloads videos, extracts audio, runs local Whisper transcription, creates TXT/SRT outputs, and gives clear progress and error feedback."
+}

@@ -1,0 +1,270 @@
+{
+  "context_type": "standalone_whisper_transcription_app_context",
+  "project_goal": {
+    "primary_goal": "Help Codex design and build a real standalone transcription app using the user's already-working ffmpeg + whisper.cpp workflow.",
+    "clarification": "This conversation mostly focused on converting existing local audio/video files into WAV and transcribing them with whisper.cpp, not primarily on YouTube downloading. However, this workflow is directly reusable inside a future YouTube transcription app.",
+    "core_architecture_idea": "A YouTube URL should ultimately become a local media file that passes through the same local transcription pipeline already proven to work."
+  },
+  "important_high_level_design_principle": {
+    "main_point": "The app should not be designed around YouTube captions.",
+    "correct_design": "The app should use local Whisper transcription through whisper.cpp.",
+    "implication": "yt-dlp should only handle acquisition/downloading. ffmpeg and whisper.cpp should handle the actual transcription pipeline."
+  },
+  "existing_working_pipeline": {
+    "overview": "The user already has a reliable manual workflow for transcription using ffmpeg and whisper.cpp on macOS Apple Silicon.",
+    "pipeline_steps": [
+      "Input media file",
+      "Convert/extract audio to WAV using ffmpeg",
+      "Run whisper.cpp on WAV",
+      "Generate TXT and SRT transcript outputs"
+    ]
+  },
+  "example_real_world_workflow_from_this_chat": {
+    "working_directory": "/Users/danielaguilar/Downloads/Biology/Lab 12/lab12-audio",
+    "source_file": "lab12-genetics.m4a",
+    "step_1_convert_audio": {
+      "tool": "ffmpeg",
+      "command": "ffmpeg -i \"lab12-genetics.m4a\" -vn -acodec pcm_s16le -ar 16000 -ac 1 \"lab12-genetics.wav\"",
+      "purpose": "Convert compressed audio into 16 kHz mono WAV format optimized for whisper.cpp transcription."
+    },
+    "step_2_transcribe_audio": {
+      "tool": "whisper.cpp",
+      "command": "~/Downloads/whisper.cpp/build/bin/whisper-cli -m ~/Downloads/whisper.cpp/models/ggml-medium.bin -f \"lab12-genetics.wav\" -osrt -otxt --max-len 80 -of \"lab12-genetics-transcript\" --prompt \"This is General Biology I Lab 12 on genetics. The end goal is completing the genetics pre-lab and post-lab exercises. Key topics include Mendelian inheritance, Law of Segregation, Law of Independent Assortment, diploid, haploid, allele, dominant, recessive, genotype, phenotype, homozygous, heterozygous, monohybrid cross, Punnett square, P generation, F1 generation, F2 generation, sorghum genetics, green seedlings, white seedlings, red seedlings, chlorophyll, dominant allele, recessive allele, expected phenotype ratios, observed results, chi-square analysis, X squared, hypothesis testing, deviation, expected values, and Dragon Genetics with wings, horns, homologous chromosomes, meiosis, fertilization, independent assortment, genetic linkage, W allele, w allele, H allele, h allele, WwHh mother, wwhh father, eggs, sperm, zygotes, and baby dragon phenotypes.\"",
+      "expected_outputs": [
+        "lab12-genetics-transcript.txt",
+        "lab12-genetics-transcript.srt"
+      ]
+    }
+  },
+  "whisper_cpp_context": {
+    "tool_name": "whisper.cpp",
+    "language_stack": "C/C++",
+    "why_user_uses_it": [
+      "Fast local transcription",
+      "Works reliably on Apple Silicon Mac",
+      "Avoids cloud APIs",
+      "Avoids dependency on YouTube captions",
+      "Reliable for long biology lecture/lab recordings"
+    ],
+    "common_executable_paths": [
+      "~/Downloads/whisper.cpp/build/bin/whisper-cli",
+      "~/whisper.cpp/build/bin/whisper-cli"
+    ],
+    "common_model_paths": [
+      "~/Downloads/whisper.cpp/models/",
+      "~/whisper.cpp/models/"
+    ]
+  },
+  "critical_whisper_model_issue": {
+    "problem_encountered": "Commands and scripts repeatedly assumed English-only Whisper models existed on the machine.",
+    "incorrect_assumptions": [
+      "ggml-medium.en.bin",
+      "ggml-large.en.bin"
+    ],
+    "actual_working_models": [
+      "ggml-medium.bin",
+      "ggml-large.bin"
+    ],
+    "real_problem": "The .en models were not installed on the user's machine, causing transcription failures and confusion.",
+    "important_technical_difference": {
+      "en_models": "English-only optimized Whisper models",
+      "non_en_models": "Multilingual Whisper models",
+      "user_setup": "The user primarily uses multilingual non-.en models."
+    },
+    "symptoms_seen": [
+      "File not found model errors",
+      "Commands copied from tutorials failed",
+      "Need to manually rewrite commands",
+      "Confusion around why whisper-cli would not run"
+    ],
+    "requirements_for_codex": [
+      "Never hardcode model names.",
+      "Never assume .en models exist.",
+      "Auto-detect installed models.",
+      "Allow manual model selection.",
+      "Remember the last successful model path.",
+      "Display the active model clearly in the UI.",
+      "Warn clearly if a configured model is missing."
+    ],
+    "recommended_model_detection_logic": [
+      "Scan common whisper.cpp model folders",
+      "List available .bin model files",
+      "Allow dropdown model selection",
+      "Fallback to first compatible discovered model"
+    ]
+  },
+  "frequently_used_whisper_flags": {
+    "-m": "Model file path",
+    "-f": "Input WAV file",
+    "-otxt": "Generate TXT transcript",
+    "-osrt": "Generate SRT subtitle file",
+    "--max-len 80": "Limit subtitle/text line length",
+    "-of": "Output file prefix",
+    "--prompt": "Inject vocabulary/context to improve recognition accuracy"
+  },
+  "biology_transcription_context": {
+    "related_project": "General Biology I Spring 2026 simulation project",
+    "common_media_types": [
+      "lecture recordings",
+      "lab recordings",
+      "voice memos",
+      "downloaded MP4 lectures",
+      "Zoom recordings"
+    ],
+    "reason_domain_prompts_are_used": "Whisper performs better when biology-specific vocabulary is included in prompts.",
+    "common_prompt_topics": [
+      "genetics",
+      "meiosis",
+      "mitosis",
+      "DNA forensics",
+      "PCR",
+      "gel electrophoresis",
+      "ecology",
+      "Punnett squares",
+      "chi-square analysis",
+      "Dragon Genetics"
+    ],
+    "prompt_strategy": [
+      "Include course name",
+      "Include lecture/lab number",
+      "Include assignment goal",
+      "Include technical vocabulary",
+      "Include likely difficult proper nouns"
+    ]
+  },
+  "important_lessons_from_this_chat": [
+    "The proven workflow is local media -> WAV -> whisper.cpp.",
+    "YouTube support should simply feed files into this same backend.",
+    "The app should support local files even without YouTube.",
+    "The app should expose all subprocess errors.",
+    "The app should display progress visibly.",
+    "The app should not fail silently.",
+    "The app should support reusable prompt presets.",
+    "The app should preserve working command-line behavior under the hood."
+  ],
+  "recommended_app_architecture": {
+    "design_principle": "Separate acquisition/downloading from transcription.",
+    "modules": {
+      "downloader_module": {
+        "purpose": "Handle YouTube downloads using yt-dlp"
+      },
+      "audio_conversion_module": {
+        "purpose": "Handle ffmpeg extraction and WAV conversion"
+      },
+      "transcription_module": {
+        "purpose": "Run whisper.cpp and generate transcript files"
+      },
+      "model_manager_module": {
+        "purpose": "Detect and manage installed Whisper models"
+      },
+      "prompt_manager_module": {
+        "purpose": "Store reusable domain prompts"
+      },
+      "dependency_checker_module": {
+        "purpose": "Verify yt-dlp, ffmpeg, whisper-cli, and models exist"
+      },
+      "output_manager_module": {
+        "purpose": "Manage TXT/SRT output paths and project folders"
+      },
+      "gui_logger_module": {
+        "purpose": "Display progress, commands, stdout/stderr, and errors"
+      }
+    }
+  },
+  "recommended_input_sources": [
+    "YouTube URL",
+    "Local MP4",
+    "Local M4A",
+    "Local MP3",
+    "Local WAV",
+    "Voice memos"
+  ],
+  "recommended_processing_pipeline": [
+    "Validate input",
+    "Create output/project folder",
+    "Download media if URL provided",
+    "Convert media to 16 kHz mono WAV using ffmpeg",
+    "Run whisper.cpp",
+    "Generate TXT and SRT outputs",
+    "Verify transcript files exist",
+    "Open output folder"
+  ],
+  "recommended_mvp_for_codex": {
+    "best_first_step": "Build local-file transcription first before adding YouTube support.",
+    "reason": "The local transcription workflow is already proven reliable.",
+    "minimum_features": [
+      "Select local media file",
+      "Choose output folder",
+      "Convert to WAV",
+      "Run whisper.cpp",
+      "Generate TXT",
+      "Generate SRT",
+      "Display progress",
+      "Display command log",
+      "Display errors"
+    ],
+    "second_phase": [
+      "Add YouTube URL input",
+      "Add yt-dlp download support",
+      "Feed downloaded file into same local transcription backend"
+    ]
+  },
+  "non_negotiables": [
+    "Do not rely only on YouTube captions.",
+    "Must run local whisper.cpp transcription.",
+    "Must support local files.",
+    "Must expose errors clearly.",
+    "Must not fail silently.",
+    "Must not assume .en models exist.",
+    "Must detect installed model files dynamically.",
+    "Must preserve the proven ffmpeg + whisper.cpp workflow."
+  ],
+  "platform_context": {
+    "operating_system": "macOS Apple Silicon",
+    "shell": "zsh",
+    "ffmpeg": "Installed locally",
+    "yt_dlp": "Installed locally",
+    "whisper_cpp": "Installed locally and working"
+  },
+  "recommended_technology_directions": [
+    {
+      "stack": "SwiftUI",
+      "pros": [
+        "Best native macOS experience",
+        "Clean desktop UI",
+        "Good integration with macOS"
+      ],
+      "cons": [
+        "Less cross-platform"
+      ]
+    },
+    {
+      "stack": "Tauri + TypeScript + Rust",
+      "pros": [
+        "Cross-platform potential",
+        "Lightweight",
+        "Modern architecture",
+        "Good long-term choice"
+      ],
+      "cons": [
+        "Requires Rust ecosystem knowledge"
+      ]
+    },
+    {
+      "stack": "Electron + TypeScript",
+      "pros": [
+        "Very flexible UI",
+        "Cross-platform",
+        "Large ecosystem"
+      ],
+      "cons": [
+        "Heavier memory usage"
+      ]
+    }
+  ],
+  "likely_best_direction": {
+    "recommendation": "Tauri with TypeScript frontend is likely the best long-term balance between polished UI, performance, and future Windows support.",
+    "alternative": "SwiftUI is best if the app is intended to remain macOS-only."
+  },
+  "summary_for_codex": "The user already has a reliable local transcription workflow using ffmpeg and whisper.cpp on Apple Silicon macOS. This workflow converts local media into WAV and generates TXT/SRT transcripts using whisper.cpp with custom biology prompts. The future standalone app should preserve this exact backend workflow instead of relying on YouTube captions. The app should treat YouTube as just another media acquisition source. One of the most important recurring issues was incorrect assumptions about installed Whisper models, especially assuming .en model files existed when they did not. The app must dynamically detect installed models, expose logs/errors clearly, and support both local media transcription and future YouTube downloading."
+}
