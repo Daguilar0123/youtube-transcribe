@@ -1,5 +1,3 @@
-import ssl
-ssl._create_default_https_context = ssl._create_unverified_context
 import os
 from pathlib import Path
 from flask import Flask, render_template, request, redirect, url_for, flash, send_file
