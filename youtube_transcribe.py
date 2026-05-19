@@ -17,7 +17,7 @@ def download_video(url: str, folder: Path, file_name: str = None) -> None:
         "writesubtitles": True,
         "writeautomaticsub": True,
         "subtitleslangs": ["en"],
-        "nocheckcertificate": True,
+        "nocheckcertificate": False,    # always verify TLS - never set this to True on untrusted networks
     }
     if file_name:
         safe_name = sanitize(file_name)
